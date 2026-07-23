@@ -66,7 +66,9 @@
         <h1 class="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">Tashrif Lughowi Fi'il Qurani</h1>
         <p class="text-slate-500 text-sm md:text-base">Berisi Fi'il Paling Banyak Muncul di al-Quran</p>
         <div class="mt-3 flex flex-wrap justify-center gap-2 text-xs font-semibold">
-            <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">281 kosakata terverifikasi</span>
+            <button type="button" id="vocab-toggle" aria-expanded="false" aria-controls="vocabulary-list" title="Klik untuk melihat daftar 281 kosakata"
+                class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                onclick="toggleVocabularyList()">281 kosakata terverifikasi</button>
             <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Bab 1–6</span>
         </div>
     </div>
@@ -132,6 +134,30 @@
             </table>
         </div>
     </div>
+
+    <section id="vocabulary-list" class="glass-card rounded-2xl overflow-hidden mt-8 hidden" aria-labelledby="vocabulary-title">
+        <div class="bg-emerald-700 text-white p-4 md:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+                <h2 id="vocabulary-title" class="text-xl font-bold">Daftar 281 Kosakata Fi'il Qurani</h2>
+                <p class="mt-1 text-sm text-emerald-50">Klik kembali tombol “281 kosakata terverifikasi” untuk menutup daftar.</p>
+            </div>
+            <span id="vocabulary-count" class="self-start sm:self-auto px-3 py-1 rounded-full bg-white/15 border border-white/25 text-sm font-semibold">281 kata</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-sm md:text-base">
+                <thead>
+                    <tr class="bg-emerald-50 border-b-2 border-emerald-100">
+                        <th class="p-3 md:p-4 text-center font-bold text-emerald-800 whitespace-nowrap">No.</th>
+                        <th class="p-3 md:p-4 text-right font-bold text-emerald-800 whitespace-nowrap">Madhy</th>
+                        <th class="p-3 md:p-4 text-right font-bold text-emerald-800 whitespace-nowrap">Mudhory</th>
+                        <th class="p-3 md:p-4 text-left font-bold text-emerald-800 min-w-48">Arti</th>
+                        <th class="p-3 md:p-4 text-left font-bold text-emerald-800 min-w-48">Meaning</th>
+                    </tr>
+                </thead>
+                <tbody id="vocabulary-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+    </section>
 </div>
 
 <footer class="max-w-4xl mx-auto px-4 md:px-6 pb-6 text-center text-xs md:text-sm text-slate-500">
@@ -352,6 +378,68 @@
         return { past, present };
     }
 
+    function populateVocabularyTable() {
+        const tableBody = document.getElementById('vocabulary-table-body');
+        if (!tableBody || tableBody.dataset.populated === 'true') return;
+
+        const entries = Object.values(verbLexicon).sort((a, b) => a.no - b.no);
+        const fragment = document.createDocumentFragment();
+
+        entries.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-emerald-50/60 transition-colors';
+
+            const noCell = document.createElement('td');
+            noCell.className = 'p-3 md:p-4 text-center font-semibold text-slate-500';
+            noCell.textContent = String(index + 1);
+
+            const madhiCell = document.createElement('td');
+            madhiCell.className = 'p-3 md:p-4 text-right text-2xl arabic-text font-bold text-emerald-900 whitespace-nowrap';
+            madhiCell.dir = 'rtl';
+            madhiCell.lang = 'ar';
+            madhiCell.textContent = entry.madhi;
+
+            const mudhariCell = document.createElement('td');
+            mudhariCell.className = 'p-3 md:p-4 text-right text-2xl arabic-text font-bold text-emerald-700 whitespace-nowrap';
+            mudhariCell.dir = 'rtl';
+            mudhariCell.lang = 'ar';
+            mudhariCell.textContent = entry.mudhari;
+
+            const artiCell = document.createElement('td');
+            artiCell.className = 'p-3 md:p-4 text-left text-slate-700';
+            artiCell.textContent = entry.arti;
+
+            const meaningCell = document.createElement('td');
+            meaningCell.className = 'p-3 md:p-4 text-left text-slate-700';
+            meaningCell.textContent = entry.meaning;
+
+            row.append(noCell, madhiCell, mudhariCell, artiCell, meaningCell);
+            fragment.appendChild(row);
+        });
+
+        tableBody.appendChild(fragment);
+        tableBody.dataset.populated = 'true';
+        const countBadge = document.getElementById('vocabulary-count');
+        if (countBadge) countBadge.textContent = `${entries.length} kata`;
+    }
+
+    function toggleVocabularyList() {
+        const list = document.getElementById('vocabulary-list');
+        const toggle = document.getElementById('vocab-toggle');
+        if (!list || !toggle) return;
+
+        const willOpen = list.classList.contains('hidden');
+        if (willOpen) {
+            populateVocabularyTable();
+            list.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+            list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            list.classList.add('hidden');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+
     function processTashrif() {
         try {
             const inputField = document.getElementById('arabic-input');
@@ -378,7 +466,7 @@
                 const fallback = generateRegularFallback(cleanText, bab);
                 if (!fallback) {
                     resultContainer.classList.add('hidden');
-                    showToast('Kata khusus ini belum terdapat dalam kamus 281.', false);
+                    showToast("Kata tersebut tidak termasuk dalam 281 fi'il yang sering muncul di al-Quran.", false);
                     return null;
                 }
                 renderForms(fallback.past, fallback.present);
@@ -451,7 +539,8 @@
     // Read-only diagnostics used by automated verification; harmless in production.
     window.__TASHRIF_TEST__ = Object.freeze({
         verbLexicon, kamusWazan, dhomirs, findVerb, stripArabicMarks,
-        abstractArabicKey, showKnownEntry, renderForms, generateRegularFallback
+        abstractArabicKey, showKnownEntry, renderForms, generateRegularFallback,
+        populateVocabularyTable, toggleVocabularyList
     });
 
     window.addEventListener('load', initKeyboard);
