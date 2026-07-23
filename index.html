@@ -818,7 +818,7 @@
         ['ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د'],
         ['ش', 'س', 'ي', 'ب', 'ل', 'ا', 'أ', 'ت', 'ن', 'م', 'ك', 'ط'],
         ['ظ', 'ز', 'و', 'ة', 'ى', 'ر', 'ؤ', 'ء', 'ئ', 'ّ'],
-        ['SPACE', 'BACKSPACE']
+        ['CLEAR_ALL', 'BACKSPACE']
     ];
 
     function initKeyboard() {
@@ -828,12 +828,12 @@
             row.forEach(key => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                if (key === 'SPACE') {
-                    btn.className = 'col-span-5 md:col-span-8 h-12 md:h-14 bg-white rounded-xl shadow-sm text-sm font-bold text-slate-500 active:bg-slate-200 transition-all';
-                    btn.textContent = 'SPASI';
-                    btn.addEventListener('click', () => typeKey(' '));
+                if (key === 'CLEAR_ALL') {
+                    btn.className = 'col-span-5 md:col-span-6 h-12 md:h-14 bg-amber-100 text-amber-700 rounded-xl shadow-sm text-sm md:text-base font-bold flex items-center justify-center active:bg-amber-200 transition-all';
+                    btn.textContent = 'Clear All';
+                    btn.addEventListener('click', () => typeKey('clear-all'));
                 } else if (key === 'BACKSPACE') {
-                    btn.className = 'col-span-5 md:col-span-4 h-12 md:h-14 bg-red-100 text-red-600 rounded-xl shadow-sm text-lg font-bold flex items-center justify-center active:bg-red-200 transition-all';
+                    btn.className = 'col-span-5 md:col-span-6 h-12 md:h-14 bg-red-100 text-red-600 rounded-xl shadow-sm text-lg font-bold flex items-center justify-center active:bg-red-200 transition-all';
                     btn.textContent = '⌫ Hapus';
                     btn.addEventListener('click', () => typeKey('backspace'));
                 } else {
@@ -848,7 +848,8 @@
 
     function typeKey(char) {
         const input = document.getElementById('arabic-input');
-        if (char === 'backspace') input.value = [...input.value].slice(0, -1).join('');
+        if (char === 'clear-all') input.value = '';
+        else if (char === 'backspace') input.value = [...input.value].slice(0, -1).join('');
         else input.value += char;
     }
 
