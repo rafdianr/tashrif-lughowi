@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tashrif Lughowi AI - Pro Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #047857; /* Emerald 700 */
+            --primary-light: #10b981; /* Emerald 500 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            /* Pola background Islami modern */
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            overscroll-behavior-y: none;
+        }
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            line-height: 1.8;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 25px -5px rgba(4, 120, 87, 0.1), 0 8px 10px -6px rgba(4, 120, 87, 0.1);
+        }
+
+        /* Keyboard Animation */
+        #keyboard-container {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(100%);
+        }
+        #keyboard-container.active {
+            transform: translateY(0);
+        }
+
+        /* Toast Animation */
+        #toast {
+            transition: all 0.3s ease;
+            transform: translateY(-20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-24 md:pb-8">
+
+<div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg text-sm font-medium flex items-center gap-2">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-msg">Notifikasi</span>
+</div>
+
+<div class="max-w-4xl mx-auto p-4 md:p-6 mt-4 md:mt-8">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">Tashrif Lughowi AI</h1>
+        <p class="text-slate-500 text-sm md:text-base">Mesin Cerdas Pentashrif Fi'il Madhi & Mudhori'</p>
+    </div>
+
+    <div class="glass-card rounded-2xl p-5 md:p-8 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            
+            <!-- Input Kata -->
+            <div class="relative">
+                <label class="block text-sm font-semibold text-slate-600 mb-2">Masukkan 3 Huruf Akar (Kata Dasar)</label>
+                <!-- inputmode="none" mencegah keyboard bawaan HP muncul -->
+                <input type="text" id="arabic-input" inputmode="none" readonly
+                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-3xl arabic-text text-center text-emerald-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all cursor-pointer"
+                    placeholder="contoh: نصر" onclick="openKeyboard()">
+            </div>
+
+            <!-- Pilihan Wazan -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">Pilih Bab (Wazan)</label>
+                <select id="wazan-select" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-lg font-medium text-slate-700 focus:outline-none focus:border-emerald-500 transition-all cursor-pointer">
+                    <option value="1">Bab 1 : Fa'ala - Yaf'ulu (نَصَرَ - يَنْصُرُ)</option>
+                    <option value="2">Bab 2 : Fa'ala - Yaf'ilu (ضَرَبَ - يَضْرِبُ)</option>
+                    <option value="3">Bab 3 : Fa'ala - Yaf'alu (فَتَحَ - يَفْتَحُ)</option>
+                    <option value="4">Bab 4 : Fa'ila - Yaf'alu (عَلِمَ - يَعْلَمُ)</option>
+                    <option value="5">Bab 5 : Fa'ula - Yaf'ulu (حَسُنَ - يَحْسُنُ)</option>
+                    <option value="6">Bab 6 : Fa'ila - Yaf'ilu (حَسِبَ - يَحْسِبُ)</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="processTashrif()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-emerald-500/30 transform transition active:scale-95 text-lg flex items-center justify-center gap-2">
+            <span>Tashrif Sekarang</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </button>
+    </div>
+
+    <div id="result-container" class="glass-card rounded-2xl overflow-hidden hidden">
+        <div class="bg-emerald-700 text-white p-4 text-center">
+            <h2 class="text-xl font-bold" id="result-title">Hasil Tashrif</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-emerald-50 border-b-2 border-emerald-100">
+                        <th class="p-4 font-bold text-emerald-800 w-1/3">Fi'il Mudhori'</th>
+                        <th class="p-4 font-bold text-emerald-800 w-1/3">Fi'il Madhi</th>
+                        <th class="p-4 font-bold text-emerald-800 w-1/3 border-r border-emerald-100">Dhamir (Pelaku)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-slate-100">
+                    <!-- Rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="keyboard-container" class="fixed bottom-0 left-0 w-full bg-slate-200 border-t border-slate-300 shadow-2xl z-40 pb-safe">
+    <div class="max-w-4xl mx-auto p-2 md:p-4">
+        <div class="flex justify-between items-center mb-2 px-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Keyboard Arab</span>
+            <button onclick="closeKeyboard()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 rounded-lg px-4 py-1 text-sm font-bold transition">Tutup ⬇</button>
+        </div>
+        <div id="keyboard-grid" class="grid grid-cols-10 md:grid-cols-12 gap-1 md:gap-2">
+            <!-- Buttons injected by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Kamus Kecerdasan (Auto-Detect Bab)
+    const kamusWazan = {
+        // Bab 1
+        'نصر': 1, 'أخذ': 1, 'أكل': 1, 'أمر': 1, 'تلا': 1, 'دعا': 1, 'غزا': 1, 'رجا': 1, 'قال': 1, 'قام': 1, 'صام': 1, 'طاف': 1,
+        // Bab 2
+        'ضرب': 2, 'جلس': 2, 'عرف': 2, 'رمى': 2, 'مشى': 2, 'بنى': 2, 'قضى': 2, 'هدى': 2, 'باع': 2, 'سار': 2, 'وعد': 2, 'وجد': 2, 'طوى': 2, 'روى': 2, 'نوى': 2, 'شوى': 2, 'هوى': 2, 'وقى': 2, 'وفى': 2, 'ولى': 2, 'وصى': 2,
+        // Bab 3
+        'فتح': 3, 'فعل': 3, 'جعل': 3, 'ذهب': 3, 'قرأ': 3, 'سأل': 3, 'بدأ': 3, 'سعى': 3, 'رعى': 3, 'نهى': 3, 'وضع': 3, 'وقع': 3,
+        // Bab 4
+        'علم': 4, 'فهم': 4, 'شرب': 4, 'نسي': 4, 'لقي': 4, 'رضي': 4, 'خشي': 4, 'سئم': 4, 'أمن': 4, 'خاف': 4, 'نام': 4, 'نال': 4, 'وجل': 4, 'قوى': 4,
+        // Bab 5
+        'حسن': 5, 'كرم': 5, 'عظم': 5,
+        // Bab 6
+        'حسب': 6, 'نعم': 6
+    };
+
+    const H = {
+        F: '\u064E', // Fathah
+        K: '\u0650', // Kasrah
+        D: '\u064F', // Dhommah
+        S: '\u0652', // Sukun
+        SH: '\u0651' // Tasydid (Shadda)
+    };
+
+    const wazanPatterns = {
+        1: { m: H.F, mu: H.D }, // a - u
+        2: { m: H.F, mu: H.K }, // a - i
+        3: { m: H.F, mu: H.F }, // a - a
+        4: { m: H.K, mu: H.F }, // i - a
+        5: { m: H.D, mu: H.D }, // u - u
+        6: { m: H.K, mu: H.K }  // i - i
+    };
+
+    const dhomirs = [
+        'هُوَ', 'هُمَا', 'هُمْ', 
+        'هِيَ', 'هُمَا', 'هُنَّ', 
+        'أَنْتَ', 'أَنْتُمَا', 'أَنْتُمْ', 
+        'أَنْتِ', 'أَنْتُمَا', 'أَنْتُنَّ', 
+        'أَنَا', 'نَحْنُ'
+    ];
+
+    function generateWord(L1, L2, L3, bab, isMadhi, idx) {
+        let vM = wazanPatterns[bab].m;
+        let vMu = wazanPatterns[bab].mu;
+
+        // Deteksi Tipe Bina'
+        let isMitsal = (L1 === 'و' || L1 === 'ي');
+        let isAjwaf = (L2 === 'و' || L2 === 'ي' || L2 === 'ا');
+        let isNaqis = (L3 === 'و' || L3 === 'ي' || L3 === 'ا' || L3 === 'ى' || L3 === 'ء');
+        let isLafifMaqrun = isAjwaf && isNaqis;
+        if (isLafifMaqrun) isAjwaf = false; // Batalkan aturan Ajwaf jika ia Lafif Maqrun
+        let isMahmuz = (L1 === 'أ' || L2 === 'أ' || L3 === 'أ' || L1 === 'ا'); 
+
+        // Normalisasi huruf penyakit/hamzah
+        if (L1 === 'ا') L1 = 'أ';
+        if (L3 === 'ى' || L3 === 'ا') L3 = (bab === 1) ? 'و' : 'ي'; 
+
+        let res = "";
+
+        // ==========================================
+        // 1. GENERATE FI'IL MADHI
+        // ==========================================
+        if (isMadhi) {
+            let harokatL3 = H.F; // Default Huwa
+            let suffix = "";
+            
+            // Aturan Akhiran Madhi Normal
+            if (idx === 0) { harokatL3 = H.F; suffix = ""; } // Huwa
+            else if (idx === 1) { harokatL3 = H.F; suffix = "ا"; } // Huma (m)
+            else if (idx === 2) { harokatL3 = H.D; suffix = "وْا"; } // Hum
+            else if (idx === 3) { harokatL3 = H.F; suffix = "تْ"; } // Hiya
+            else if (idx === 4) { harokatL3 = H.F; suffix = "تَا"; } // Huma (f)
+            else if (idx === 5) { harokatL3 = H.S; suffix = "نَ"; } // Hunna
+            else if (idx === 6) { harokatL3 = H.S; suffix = "تَ"; } // Anta
+            else if (idx === 7) { harokatL3 = H.S; suffix = "تُمَا"; } // Antuma (m)
+            else if (idx === 8) { harokatL3 = H.S; suffix = "تُمْ"; } // Antum
+            else if (idx === 9) { harokatL3 = H.S; suffix = "تِ"; } // Anti
+            else if (idx === 10) { harokatL3 = H.S; suffix = "تُمَا"; } // Antuma (f)
+            else if (idx === 11) { harokatL3 = H.S; suffix = "تُنَّ"; } // Antunna
+            else if (idx === 12) { harokatL3 = H.S; suffix = "تُ"; } // Ana
+            else if (idx === 13) { harokatL3 = H.S; suffix = "نَا"; } // Nahnu
+
+            // Rakit dasar (Raw)
+            res = L1 + H.F + L2 + vM + L3 + harokatL3 + suffix;
+
+            // I'LAL AJWAF (Madhi)
+            if (isAjwaf) {
+                if (idx < 5) {
+                    // قالَ, باعَ, خافَ
+                    res = L1 + H.F + 'ا' + L3 + harokatL3 + suffix;
+                } else {
+                    // قُلْنَ, بِعْنَ, خِفْنَ
+                    let harokatAwal = (bab === 1 || bab === 5) ? H.D : H.K;
+                    res = L1 + harokatAwal + L3 + harokatL3 + suffix;
+                }
+            }
+
+            // I'LAL NAQIS (Madhi)
+            if (isNaqis) {
+                if (idx === 0) {
+                    // دَعَا / رَمَى
+                    let endChar = (bab === 1) ? 'ا' : 'ى';
+                    res = L1 + H.F + L2 + vM + endChar;
+                } else if (idx === 2) {
+                    // دَعَوْا / رَمَوْا
+                    res = L1 + H.F + L2 + H.F + "وْا";
+                } else if (idx === 3) {
+                    // دَعَتْ / رَمَتْ
+                    res = L1 + H.F + L2 + H.F + "تْ";
+                } else if (idx === 4) {
+                    // دَعَتَا / رَمَتَا
+                    res = L1 + H.F + L2 + H.F + "تَا";
+                }
+                // idx lain (Hunna dst) L3 hidup disukunkan, e.g., دَعَوْنَ, رَمَيْنَ (Otomatis dari Raw)
+            }
+        } 
+        // ==========================================
+        // 2. GENERATE FI'IL MUDHORI'
+        // ==========================================
+        else {
+            // Tentukan Awalan (Mudhoro'ah)
+            let prefixChar = 'ي';
+            if (idx === 3 || idx === 4 || (idx >= 6 && idx <= 11)) prefixChar = 'ت';
+            else if (idx === 12) prefixChar = 'أ';
+            else if (idx === 13) prefixChar = 'ن';
+
+            let prefix = prefixChar + H.F; // Default fathah
+
+            // Tentukan Akhiran
+            let harokatL3 = vMu; // Harokat standar huruf terakhir
+            let suffix = "";
+            if (idx === 1 || idx === 4 || idx === 7 || idx === 10) { harokatL3 = H.F; suffix = "انِ"; } // Huma/Antuma
+            else if (idx === 2 || idx === 8) { harokatL3 = H.D; suffix = "وْنَ"; } // Hum/Antum
+            else if (idx === 5 || idx === 11) { harokatL3 = H.S; suffix = "نَ"; } // Hunna/Antunna
+            else if (idx === 9) { harokatL3 = H.K; suffix = "يْنَ"; } // Anti
+
+            // Rakit Dasar (Raw)
+            res = prefix + L1 + H.S + L2 + vMu + L3 + harokatL3 + suffix;
+
+            // I'LAL MITSAL (Mudhori) - Buang Wawu jika Bab 2, 3, 6
+            if (isMitsal && L1 === 'و' && (bab === 2 || bab === 3 || bab === 6)) {
+                // يَوْعِدُ -> يَعِدُ
+                res = res.replace(prefixChar + H.F + 'و' + H.S, prefixChar + H.F);
+            }
+
+            // I'LAL AJWAF (Mudhori)
+            if (isAjwaf) {
+                if (idx === 5 || idx === 11) { // Hunna & Antunna (Bertemu Sukun)
+                    // يَقُوْلْنَ -> يَقُلْنَ (Bab 1), يَبِيْعْنَ -> يَبِعْنَ (Bab 2), يَخَافْنَ -> يَخَفْنَ (Bab 4)
+                    let ajwafCharHarokat = (bab === 1) ? H.D : (bab === 2) ? H.K : H.F;
+                    res = prefix + L1 + ajwafCharHarokat + L3 + H.S + "نَ";
+                } else {
+                    // يَقْوُلُ -> يَقُوْلُ
+                    let ajwafChar = (bab === 1) ? 'و' : (bab === 2) ? 'ي' : 'ا';
+                    let harokatSebelum = (bab === 1) ? H.D : (bab === 2) ? H.K : H.F;
+                    res = prefix + L1 + harokatSebelum + ajwafChar + H.S + L3 + harokatL3 + suffix;
+                    
+                    // Fix untuk Huma/Hum dsb yg L3-nya tidak disukunkan
+                    if (suffix === "") {
+                        res = prefix + L1 + harokatSebelum + ajwafChar + H.S + L3 + H.D;
+                    }
+                }
+            }
+
+            // I'LAL NAQIS (Mudhori)
+            if (isNaqis) {
+                let isWawu = (bab === 1 || bab === 5); // يَدْعُوْ
+                let isYa = (bab === 2 || bab === 6); // يَرْمِيْ
+                let isAlif = (bab === 3 || bab === 4); // يَسْعَى
+                
+                let baseChar = isWawu ? 'و' : isYa ? 'ي' : 'ى';
+                
+                if (idx === 0 || idx === 3 || idx === 6 || idx === 12 || idx === 13) {
+                    // Huwa, Hiya, Anta, Ana, Nahnu -> يَدْعُوْ, يَرْمِيْ, يَسْعَى
+                    let harokatSblm = isWawu ? H.D : isYa ? H.K : H.F;
+                    // L1 + Sukun + L2 + Harokat + HurufAkhir + Sukun
+                    // Jika Lafif Mafruq (Mitsal drop wawu, L1 hilang), sesuaikan strukturnya
+                    if (isMitsal && L1 === 'و' && (bab===2||bab===3||bab===6)) {
+                        res = prefix + L2 + harokatSblm + baseChar + H.S;
+                    } else {
+                        res = prefix + L1 + H.S + L2 + harokatSblm + baseChar + H.S;
+                    }
+                } 
+                else if (idx === 2 || idx === 8) { // Hum, Antum (Bertemu Wau Jama)
+                    // يَدْعُوْنَ, يَرْمَوْنَ (Tunggu, Bab 2 يَرْمُوْنَ, Bab 4 يَسْعَوْنَ)
+                    let harokatSblm = (bab === 3 || bab === 4) ? H.F : H.D;
+                    if (isMitsal && L1 === 'و' && (bab===2||bab===3||bab===6)) {
+                        res = prefix + L2 + harokatSblm + "وْنَ";
+                    } else {
+                        res = prefix + L1 + H.S + L2 + harokatSblm + "وْنَ";
+                    }
+                }
+                else if (idx === 9) { // Anti (Bertemu Ya Muannats)
+                    // تَدْعِيْنَ, تَرْمِيْنَ, تَسْعَيْنَ
+                    let harokatSblm = (bab === 3 || bab === 4) ? H.F : H.K;
+                    if (isMitsal && L1 === 'و' && (bab===2||bab===3||bab===6)) {
+                        res = prefix + L2 + harokatSblm + "يْنَ";
+                    } else {
+                        res = prefix + L1 + H.S + L2 + harokatSblm + "يْنَ";
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 3. ATURAN PENULISAN HAMZAH (MAHMUZ) - Global
+        // ==========================================
+        // Kasroh = ئ , Dhommah + Sukun = ؤ
+        res = res.replace(/أِ/g, 'ئِ');
+        res = res.replace(/أُوْ/g, 'ؤُوْ'); // قَرَأُوْا -> قَرَؤُوْا
+        
+        if (!isMadhi && idx === 12) { // Khusus Mudhori 'Ana' (أَأْ -> آ)
+            res = res.replace(/أَأْ/g, 'آ'); // أَأْكُلُ -> آكُلُ
+        }
+
+        return res;
+    }
+
+    function showToast(msg, isSuccess = true) {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toast-icon');
+        const msgEl = document.getElementById('toast-msg');
+        
+        toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg text-sm font-medium flex items-center gap-2 ${isSuccess ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}`;
+        icon.innerText = isSuccess ? '✨' : '⚠️';
+        msgEl.innerText = msg;
+        
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function processTashrif() {
+        try {
+            const inputField = document.getElementById('arabic-input');
+            const wazanSelect = document.getElementById('wazan-select');
+            const tableBody = document.getElementById('table-body');
+            const resultContainer = document.getElementById('result-container');
+
+            let rawText = inputField.value;
+            // Bersihkan harokat agar sisa huruf aslinya saja
+            let cleanText = rawText.replace(/[^\u0621-\u064A]/g, '');
+
+            if (cleanText.length < 3) {
+                showToast("Mohon masukkan minimal 3 huruf Arab.", false);
+                return;
+            }
+
+            // Normalisasi Alif di awal menjadi Hamzah
+            let L1 = cleanText[0];
+            const L2 = cleanText[1];
+            const L3 = cleanText[2];
+            if (L1 === 'ا') L1 = 'أ';
+
+            const rootWord = L1 + L2 + L3;
+
+            // Auto-Detect Wazan / Bab dari Kamus
+            if (kamusWazan[rootWord]) {
+                const detectedBab = kamusWazan[rootWord];
+                if (parseInt(wazanSelect.value) !== detectedBab) {
+                    wazanSelect.value = detectedBab;
+                    showToast(`Wazan Otomatis Disesuaikan: Bab ${detectedBab}`);
+                }
+            }
+
+            const bab = parseInt(wazanSelect.value);
+            tableBody.innerHTML = '';
+
+            // Generate 14 Baris
+            for (let i = 0; i < 14; i++) {
+                let madhiWord = generateWord(L1, L2, L3, bab, true, i);
+                let mudhoriWord = generateWord(L1, L2, L3, bab, false, i);
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-emerald-50/50 transition-colors duration-150";
+                tr.innerHTML = `
+                    <td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-700">${mudhoriWord}</td>
+                    <td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-900">${madhiWord}</td>
+                    <td class="p-4 text-lg md:text-xl font-bold text-slate-700 bg-emerald-50/30 border-r border-emerald-100">${dhomirs[i]}</td>
+                `;
+                tableBody.appendChild(tr);
+            }
+
+            resultContainer.classList.remove('hidden');
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            closeKeyboard(); // Tutup keyboard setelah sukses
+
+        } catch (error) {
+            console.error(error);
+            showToast("Terjadi kesalahan teknis saat memproses I'lal.", false);
+        }
+    }
+
+    const keys = [
+        ['ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د'],
+        ['ش', 'س', 'ي', 'ب', 'ل', 'ا', 'أ', 'ت', 'ن', 'م', 'ك', 'ط'],
+        ['ظ', 'ز', 'و', 'ة', 'ى', 'ر', 'ؤ', 'ء', 'ئ'],
+        ['SPACE', 'BACKSPACE']
+    ];
+
+    function initKeyboard() {
+        const grid = document.getElementById('keyboard-grid');
+        grid.innerHTML = '';
+
+        keys.forEach((row, rowIdx) => {
+            row.forEach(key => {
+                const btn = document.createElement('button');
+                
+                if (key === 'SPACE') {
+                    btn.className = "col-span-5 md:col-span-8 h-12 md:h-14 bg-white rounded-xl shadow-sm text-sm font-bold text-slate-500 active:bg-slate-200 active:scale-95 transition-all";
+                    btn.innerText = "SPASI";
+                    btn.onclick = () => typeKey(' ');
+                } else if (key === 'BACKSPACE') {
+                    btn.className = "col-span-5 md:col-span-4 h-12 md:h-14 bg-red-100 text-red-600 rounded-xl shadow-sm text-lg font-bold flex items-center justify-center active:bg-red-200 active:scale-95 transition-all";
+                    btn.innerHTML = "⌫ Hapus";
+                    btn.onclick = () => typeKey('backspace');
+                } else {
+                    btn.className = "h-12 md:h-14 bg-white rounded-xl shadow-sm text-2xl md:text-3xl arabic-text text-emerald-900 active:bg-emerald-100 active:scale-90 transition-all";
+                    btn.innerText = key;
+                    btn.onclick = () => typeKey(key);
+                }
+                grid.appendChild(btn);
+            });
+        });
+    }
+
+    function typeKey(char) {
+        const input = document.getElementById('arabic-input');
+        if (char === 'backspace') {
+            input.value = input.value.slice(0, -1);
+        } else {
+            input.value += char;
+        }
+        // Trigger pencarian jika sudah 3 huruf
+        if (input.value.replace(/[^\u0621-\u064A]/g, '').length === 3) {
+             // Opsional: Langsung tashrif otomatis
+             // processTashrif(); 
+        }
+    }
+
+    function openKeyboard() {
+        document.getElementById('keyboard-container').classList.add('active');
+        document.getElementById('arabic-input').blur(); // Hindari keyboard bawaan
+    }
+
+    function closeKeyboard() {
+        document.getElementById('keyboard-container').classList.remove('active');
+    }
+
+    // Hindari klik di luar keyboard menutupnya jika tidak disengaja (UX baik)
+    window.addEventListener('load', initKeyboard);
+
+</script>
+</body>
+</html>
