@@ -106,6 +106,18 @@
             <h2 class="text-xl font-bold" id="result-title">Hasil Tashrif</h2>
             <p id="result-meta" class="mt-1 text-sm text-emerald-50"></p>
         </div>
+
+        <div id="meaning-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-4 md:p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+            <div class="bg-white rounded-xl border border-emerald-100 p-4 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Arti Bahasa Indonesia</p>
+                <p id="meaning-id" class="text-base md:text-lg font-semibold text-slate-800">—</p>
+            </div>
+            <div class="bg-white rounded-xl border border-teal-100 p-4 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1">English Meaning</p>
+                <p id="meaning-en" class="text-base md:text-lg font-semibold text-slate-800">—</p>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-right border-collapse">
                 <thead>
@@ -278,14 +290,20 @@
         const resultContainer = document.getElementById('result-container');
         const resultTitle = document.getElementById('result-title');
         const resultMeta = document.getElementById('result-meta');
+        const meaningPanel = document.getElementById('meaning-panel');
+        const meaningId = document.getElementById('meaning-id');
+        const meaningEn = document.getElementById('meaning-en');
 
         wazanSelect.value = String(entry.bab);
         renderForms(entry.past, entry.present);
         resultTitle.textContent = `${entry.madhi} — ${entry.mudhari}`;
 
         const rootDisplay = [...entry.root].join(' ');
-        const meaning = entry.arti ? ` • Arti: ${entry.arti}` : '';
-        resultMeta.textContent = `Akar: ${rootDisplay} • Bab ${entry.bab} • Bina’: ${formatBina(entry)}${meaning}`;
+        resultMeta.textContent = `Akar: ${rootDisplay} • Bab ${entry.bab} • Bina’: ${formatBina(entry)}`;
+
+        meaningId.textContent = entry.arti || 'Arti belum tersedia';
+        meaningEn.textContent = entry.meaning || 'Meaning not available';
+        meaningPanel.classList.remove('hidden');
 
         resultContainer.classList.remove('hidden');
         return entry;
@@ -337,6 +355,9 @@
             const resultContainer = document.getElementById('result-container');
             const resultTitle = document.getElementById('result-title');
             const resultMeta = document.getElementById('result-meta');
+            const meaningPanel = document.getElementById('meaning-panel');
+            const meaningId = document.getElementById('meaning-id');
+            const meaningEn = document.getElementById('meaning-en');
             const cleanText = stripArabicMarks(inputField.value);
 
             if (cleanText.length < 2) {
@@ -359,6 +380,9 @@
                 renderForms(fallback.past, fallback.present);
                 resultTitle.textContent = 'Hasil Pola Umum';
                 resultMeta.textContent = `Di luar kamus • Bab ${bab} • Ṣaḥīḥ sederhana`;
+                meaningId.textContent = 'Arti tidak tersedia karena kata ini berada di luar kamus 281.';
+                meaningEn.textContent = 'Meaning is unavailable because this word is outside the 281-word dictionary.';
+                meaningPanel.classList.remove('hidden');
                 resultContainer.classList.remove('hidden');
                 showToast('Kata di luar kamus: menggunakan pola ṣaḥīḥ umum.', false);
             }
