@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tashrif Lughowi Fi'il Qurani - Advanced Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #047857; --primary-light: #10b981; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            overscroll-behavior-y: none;
+        }
+        .arabic-text { font-family: 'Amiri', serif; line-height: 1.8; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 25px -5px rgba(4, 120, 87, 0.1), 0 8px 10px -6px rgba(4, 120, 87, 0.1);
+        }
+        #keyboard-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(100%); }
+        #keyboard-container.active { transform: translateY(0); }
+        #toast { transition: all 0.3s ease; transform: translateY(-20px); opacity: 0; pointer-events: none; }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+    
+    <!-- MEMANGGIL DATABASE DARI FILE EXTERNAL -->
+    <script src="data.js"></script>
+</head>
+<body class="text-slate-800 pb-24 md:pb-8">
+
+<div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg text-sm font-medium flex items-center gap-2">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-msg">Notifikasi</span>
+</div>
+
+<div class="max-w-4xl mx-auto p-4 md:p-6 mt-4 md:mt-8">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-emerald-800 mb-2">Tashrif Lughowi Fi'il Qurani</h1>
+        <p class="text-slate-500 text-sm md:text-base">Berisi Fi'il Paling Banyak Muncul di al-Quran</p>
+        <div class="mt-3 flex flex-wrap justify-center gap-2 text-xs font-semibold">
+            <button type="button" id="vocab-toggle" aria-expanded="false" aria-controls="vocabulary-list" title="Klik untuk melihat daftar kosakata"
+                class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 focus:outline-none transition-colors cursor-pointer"
+                onclick="toggleVocabularyList()">Lihat daftar kosakata</button>
+        </div>
+    </div>
+
+    <div class="glass-card rounded-2xl p-5 md:p-8 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            
+            <div class="relative">
+                <label class="block text-sm font-semibold text-slate-600 mb-1">Masukkan kata dasar (Fi'il Māḍī)</label>
+                <p class="text-xs text-slate-400 mb-2 h-8">Ketik 3 huruf tanpa harakat.</p>
+                <input type="text" id="arabic-input" inputmode="none" readonly
+                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-3xl arabic-text text-center text-emerald-900 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all cursor-pointer"
+                    placeholder="Contoh: جلس" onclick="openKeyboard()">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1">Pilih Bab (Wazan) — <span class="text-emerald-600">Opsional</span></label>
+                <p class="text-xs text-slate-400 mb-2 h-8">Biarkan "Tebak Otomatis" jika Anda tidak tahu. Jika Anda tahu muḍāri'-nya, pilih Bab untuk hasil spesifik.</p>
+                <select id="wazan-select" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 text-sm md:text-base font-medium text-slate-700 focus:outline-none focus:border-emerald-500 transition-all cursor-pointer">
+                    <option value="auto" class="font-bold text-emerald-700">✨ Tebak Otomatis (Tampilkan Semua Asumsi)</option>
+                    <option value="1">Bab 1 : Fa'ala - Yaf'ulu (نَصَرَ - يَنْصُرُ)</option>
+                    <option value="2">Bab 2 : Fa'ala - Yaf'ilu (ضَرَبَ - يَضْرِبُ)</option>
+                    <option value="3">Bab 3 : Fa'ala - Yaf'alu (فَتَحَ - يَفْتَحُ)</option>
+                    <option value="4">Bab 4 : Fa'ila - Yaf'alu (عَلِمَ - يَعْلَمُ)</option>
+                    <option value="5">Bab 5 : Fa'ula - Yaf'ulu (حَسُنَ - يَحْسُنُ)</option>
+                    <option value="6">Bab 6 : Fa'ila - Yaf'ilu (حَسِبَ - يَحْسِبُ)</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="processTashrif()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-emerald-500/30 transform transition active:scale-95 text-lg flex items-center justify-center gap-2">
+            <span>Tashrif Sekarang</span>
+        </button>
+    </div>
+
+    <!-- Container Hasil -->
+    <div id="result-container" class="glass-card rounded-2xl overflow-hidden hidden">
+        <div class="bg-emerald-700 text-white p-4 text-center" id="result-header">
+            <h2 class="text-xl font-bold" id="result-title">Hasil Tashrif</h2>
+            <p id="result-meta" class="mt-1 text-sm text-emerald-50"></p>
+        </div>
+
+        <div id="meaning-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-4 md:p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+            <div class="bg-white rounded-xl border border-emerald-100 p-4 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Arti Bahasa Indonesia</p>
+                <p id="meaning-id" class="text-base md:text-lg font-semibold text-slate-800">—</p>
+            </div>
+            <div class="bg-white rounded-xl border border-teal-100 p-4 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-teal-600 mb-1">English Meaning</p>
+                <p id="meaning-en" class="text-base md:text-lg font-semibold text-slate-800">—</p>
+            </div>
+        </div>
+
+        <div id="fallback-warning" class="hidden m-4 md:m-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            <div class="flex items-start gap-3">
+                <span class="text-xl">⚠️</span>
+                <div>
+                    <p class="font-bold text-base">Di luar Kamus 285 Kata.</p>
+                    <p id="fallback-warning-detail" class="mt-1 text-sm leading-relaxed"></p>
+                    <p class="mt-2 text-xs font-semibold text-amber-700">Tabel di bawah adalah hasil asumsi algoritma. Harap verifikasi kebenarannya dengan kamus standar.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="standard-table-wrapper" class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-emerald-50 border-b-2 border-emerald-100">
+                        <th class="p-4 font-bold text-emerald-800 w-1/3">Fi'il Mudhori'</th>
+                        <th class="p-4 font-bold text-emerald-800 w-1/3">Fi'il Madhi</th>
+                        <th class="p-4 font-bold text-emerald-800 w-1/3 border-r border-emerald-100">Dhamir (Pelaku)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+
+        <div id="fallback-variants-container" class="hidden p-4 md:p-5 space-y-4"></div>
+    </div>
+
+    <!-- Container Daftar Kosakata -->
+    <section id="vocabulary-list" class="glass-card rounded-2xl overflow-hidden mt-8 hidden">
+        <div class="bg-emerald-700 text-white p-4 md:p-5 flex justify-between items-center">
+            <h2 class="text-xl font-bold">Daftar Kamus Terverifikasi</h2>
+        </div>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full border-collapse text-sm md:text-base relative">
+                <thead class="sticky top-0 z-10">
+                    <tr class="bg-emerald-50 border-b-2 border-emerald-100 shadow-sm">
+                        <th class="p-3 md:p-4 text-center font-bold text-emerald-800 whitespace-nowrap">No.</th>
+                        <th class="p-3 md:p-4 text-right font-bold text-emerald-800 whitespace-nowrap">Madhy</th>
+                        <th class="p-3 md:p-4 text-right font-bold text-emerald-800 whitespace-nowrap">Mudhory</th>
+                        <th class="p-3 md:p-4 text-left font-bold text-emerald-800 min-w-48">Arti</th>
+                        <th class="p-3 md:p-4 text-left font-bold text-emerald-800 min-w-48">Meaning</th>
+                    </tr>
+                </thead>
+                <tbody id="vocabulary-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- Keyboard Virtual -->
+<div id="keyboard-container" class="fixed bottom-0 left-0 w-full bg-slate-200 border-t border-slate-300 shadow-2xl z-40 pb-safe">
+    <div class="max-w-4xl mx-auto p-2 md:p-4">
+        <div class="flex justify-between items-center mb-2 px-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Keyboard Arab Khusus</span>
+            <button onclick="closeKeyboard()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 rounded-lg px-4 py-1 text-sm font-bold transition">Tutup ⬇</button>
+        </div>
+        <div id="keyboard-grid" class="grid grid-cols-10 md:grid-cols-12 gap-1 md:gap-2"></div>
+    </div>
+</div>
+
+<script>
+    "use strict";
+
+    // Memeriksa apakah data.js berhasil dimuat
+    if (typeof verbLexicon === 'undefined') {
+        alert("Error: File data.js tidak ditemukan atau formatnya salah! Pastikan file data.js berada dalam satu folder yang sama.");
+    }
+
+    const dhomirs = Object.freeze([
+        'هُوَ', 'هُمَا', 'هُمْ',
+        'هِيَ', 'هُمَا', 'هُنَّ',
+        'أَنْتَ', 'أَنْتُمَا', 'أَنْتُمْ',
+        'أَنْتِ', 'أَنْتُمَا', 'أَنْتُنَّ',
+        'أَنَا', 'نَحْنُ'
+    ]);
+
+    const binaLabels = Object.freeze({
+        'sahih': 'Ṣaḥīḥ', 'mitsal': 'Mitsāl', 'ajwaf': 'Ajwaf', 'naqis': 'Nāqiṣ',
+        'mudhoaf': 'Muḍā‘af', 'lafif-mafruq': 'Lafīf Mafrūq', 'lafif-maqrun': 'Lafīf Maqrūn',
+        'mahmuz-fa': 'Mahmūz Fā’', 'mahmuz-ain': 'Mahmūz ‘Ain', 'mahmuz-lam': 'Mahmūz Lām',
+        'jamid': 'Fi‘il jāmid'
+    });
+
+    const ARABIC_MARKS_RE = /[ؐ-ًؚ-ٰٟۖ-ۭ]/g;
+    const NON_ARABIC_RE = /[^ء-غف-يٱ\s]/g;
+
+    function stripArabicMarks(text) {
+        return String(text ?? '').normalize('NFC').replace(/ـ/g, '').replace(ARABIC_MARKS_RE, '').replace(NON_ARABIC_RE, '').replace(/\s+/g, '');
+    }
+
+    function abstractArabicKey(text) {
+        return stripArabicMarks(text).replace(/آ/g, 'ءا').replace(/[أإؤئ]/g, 'ء').replace(/ى/g, 'ي');
+    }
+
+    const exactAliases = new Map();
+    const normalizedAliases = new Map();
+
+    // Memetakan lexicon ke dalam Map untuk pencarian cepat
+    Object.keys(verbLexicon || {}).forEach(key => {
+        const entry = verbLexicon[key];
+        const exact = stripArabicMarks(key);
+        exactAliases.set(exact, key);
+        normalizedAliases.set(abstractArabicKey(exact), key);
+        if(entry.root) normalizedAliases.set(abstractArabicKey(entry.root), key);
+    });
+
+    function findVerb(text) {
+        const exact = stripArabicMarks(text);
+        if (!exact) return null;
+        if (verbLexicon[exact]) return verbLexicon[exact];
+        if (exactAliases.has(exact)) return verbLexicon[exactAliases.get(exact)];
+        const normalized = abstractArabicKey(exact);
+        if (normalizedAliases.has(normalized)) return verbLexicon[normalizedAliases.get(normalized)];
+        return null;
+    }
+
+    function showToast(msg, isSuccess = true) {
+        const toast = document.getElementById('toast');
+        toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-lg text-sm font-medium flex items-center gap-2 ${isSuccess ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}`;
+        document.getElementById('toast-icon').textContent = isSuccess ? '✨' : '⚠️';
+        document.getElementById('toast-msg').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // =========================================================
+    // LOGIKA RUMUS FALLBACK (RINGKAS)
+    // =========================================================
+    const H = Object.freeze({ F: 'َ', K: 'ِ', D: 'ُ', S: 'ْ', SH: 'ّ' });
+    const CLOSED_PAST_SUFFIXES = ['نَ', 'تَ', 'تُمَا', 'تُمْ', 'تِ', 'تُمَا', 'تُنَّ', 'تُ', 'نَا'];
+    
+    function isHamza(char) { return 'ءأإؤئآ'.includes(char); }
+    function normalizeInitialRadical(char) { return (char === 'ا' || isHamza(char)) ? 'أ' : char; }
+    function middleRadicalGlyph(char, vowel) { return !isHamza(char) ? char : (vowel === H.K ? 'ئ' : (vowel === H.D ? 'ؤ' : 'أ')); }
+    function finalRadicalGlyph(char, preVowel) { return !isHamza(char) ? char : (preVowel === H.K ? 'ئ' : (preVowel === H.D ? 'ؤ' : 'أ')); }
+    function getPrefix(i, F1) { return (i === 12) ? ((F1 === 'أ' || F1 === 'ء') ? 'آ' : 'أَ') : (i === 13 ? 'نَ' : ([0, 1, 2, 5].includes(i) ? 'يَ' : 'تَ')); }
+    function sameArabicLetter(a, b) { return abstractArabicKey(a) === abstractArabicKey(b); }
+    function joinClosedRadical(rRaw, rGlyph, suffix) { return (suffix[0] && sameArabicLetter(rRaw, suffix[0])) ? `${rGlyph}${H.SH}${suffix.slice(1)}`.normalize('NFC') : `${rGlyph}${H.S}${suffix}`.normalize('NFC'); }
+
+    function generateStrongPast(surface, midVowel) {
+        const chars = [...surface];
+        const L1 = normalizeInitialRadical(chars[0]), L2 = middleRadicalGlyph(chars[1], midVowel), L3O = finalRadicalGlyph(chars[2], midVowel);
+        const open = `${L1}${H.F}${L2}${midVowel}`;
+        const forms = [`${open}${L3O}${H.F}`, `${open}${L3O}${H.F}ا`, `${open}${finalRadicalGlyph(chars[2], H.D)}${H.D}وا`, `${open}${L3O}${H.F}تْ`, `${open}${L3O}${H.F}تَا`];
+        const closed = finalRadicalGlyph(chars[2], midVowel);
+        CLOSED_PAST_SUFFIXES.forEach(s => forms.push(`${open}${joinClosedRadical(chars[2], closed, s)}`));
+        return forms.map(f => f.normalize('NFC'));
+    }
+    
+    function generateStrongPresent(surface, vM) {
+        const chars = [...surface], L1 = normalizeInitialRadical(chars[0]), L2 = middleRadicalGlyph(chars[1], vM), rawL3 = chars[2];
+        const forms = [];
+        for (let i = 0; i < 14; i++) {
+            let pref = getPrefix(i, chars[0]), stem = (pref === 'آ' ? '' : pref + L1 + H.S) + L2 + vM;
+            let suff = '', fV = H.D;
+            if ([1, 4, 7, 10].includes(i)) { suff = 'انِ'; fV = H.F; }
+            else if ([2, 8].includes(i)) { suff = 'ونَ'; fV = H.D; }
+            else if (i === 9) { suff = 'ينَ'; fV = H.K; }
+            else if ([5, 11].includes(i)) { suff = 'نَ'; fV = H.S; }
+            let L3 = finalRadicalGlyph(rawL3, fV);
+            if (isHamza(rawL3)) { L3 = suff.startsWith('و') ? 'ؤ' : (suff.startsWith('ي') ? 'ئ' : L3); }
+            forms.push((stem + L3 + fV + suff).normalize('NFC'));
+        }
+        return forms;
+    }
+
+    function buildFallbackVariants(surfaceWord) {
+        const chars = [...surfaceWord];
+        const variants = [];
+        let category = 'Ṣaḥīḥ/Mahmūz', detail = 'Menampilkan 6 kemungkinan Bab Wazan (I\'lal otomatis).';
+
+        // Hanya mendukung Sahih 3 huruf di sistem demo ini untuk penyederhanaan
+        if (chars.length !== 3) {
+            return { category: 'Format Error', detail: 'Sistem hanya menerima input 3 huruf.', variants: [] };
+        }
+
+        variants.push({ label: 'Bab 1 (فَعَلَ - يَفْعُلُ)', past: generateStrongPast(surfaceWord, H.F), present: generateStrongPresent(surfaceWord, H.D) });
+        variants.push({ label: 'Bab 2 (فَعَلَ - يَفْعِلُ)', past: generateStrongPast(surfaceWord, H.F), present: generateStrongPresent(surfaceWord, H.K) });
+        variants.push({ label: 'Bab 3 (فَعَلَ - يَفْعَلُ)', past: generateStrongPast(surfaceWord, H.F), present: generateStrongPresent(surfaceWord, H.F) });
+        variants.push({ label: 'Bab 4 (فَعِلَ - يَفْعَلُ)', past: generateStrongPast(surfaceWord, H.K), present: generateStrongPresent(surfaceWord, H.F) });
+        variants.push({ label: 'Bab 5 (فَعُلَ - يَفْعُلُ)', past: generateStrongPast(surfaceWord, H.D), present: generateStrongPresent(surfaceWord, H.D) });
+        variants.push({ label: 'Bab 6 (فَعِلَ - يَفْعِلُ)', past: generateStrongPast(surfaceWord, H.K), present: generateStrongPresent(surfaceWord, H.K) });
+        
+        return { category, detail, variants };
+    }
+
+    // =========================================================
+    // UI LOGIC & ADVANCED MODE INTEGRATION
+    // =========================================================
+    function processTashrif() {
+        const inputField = document.getElementById('arabic-input');
+        const wazanSelect = document.getElementById('wazan-select');
+        const resultContainer = document.getElementById('result-container');
+        
+        const cleanText = stripArabicMarks(inputField.value);
+        if (cleanText.length < 2) {
+            showToast('Mohon masukkan kata māḍī Arab yang valid.', false);
+            return;
+        }
+
+        // Reset UI
+        document.getElementById('standard-table-wrapper').classList.add('hidden');
+        document.getElementById('fallback-variants-container').classList.add('hidden');
+        document.getElementById('meaning-panel').classList.add('hidden');
+        document.getElementById('fallback-warning').classList.add('hidden');
+        document.getElementById('result-header').classList.remove('hidden');
+
+        const entry = findVerb(cleanText);
+        
+        if (entry) {
+            // JIKA DITEMUKAN DI KAMUS (Abaikan pilihan dropdown)
+            wazanSelect.value = "auto"; 
+            document.getElementById('result-title').textContent = `${entry.madhi} — ${entry.mudhari}`;
+            document.getElementById('result-meta').textContent = `Akar: ${[...entry.root].join(' ')} • Bab ${entry.bab} • Bina’: ${binaLabels[entry.bina] || entry.bina}`;
+            document.getElementById('meaning-id').textContent = entry.arti || 'Arti tidak tersedia';
+            document.getElementById('meaning-en').textContent = entry.meaning || 'Meaning not available';
+            
+            const tbody = document.getElementById('table-body');
+            tbody.replaceChildren();
+            for (let i = 0; i < 14; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-700">${entry.present[i]}</td>
+                                <td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-900">${entry.past[i]}</td>
+                                <td class="p-4 text-lg md:text-xl font-bold text-slate-700 bg-emerald-50/30 border-r border-emerald-100">${dhomirs[i]}</td>`;
+                tbody.appendChild(tr);
+            }
+            
+            document.getElementById('meaning-panel').classList.remove('hidden');
+            document.getElementById('standard-table-wrapper').classList.remove('hidden');
+            showToast(`Kamus ditemukan: Bab ${entry.bab}`);
+        } else {
+            // JIKA DI LUAR KAMUS (Cek Status Advanced Mode)
+            let fallback = buildFallbackVariants(cleanText);
+            
+            document.getElementById('result-header').classList.add('hidden');
+            
+            // LOGIKA ADVANCED MODE: Filter Tabel berdasarkan Pilihan User
+            const forcedBab = wazanSelect.value;
+            if (forcedBab !== "auto") {
+                // Filter array variant hanya pada label yang memuat "Bab X"
+                const filtered = fallback.variants.filter(v => v.label.includes(`Bab ${forcedBab}`));
+                if (filtered.length > 0) {
+                    fallback.variants = filtered;
+                    fallback.detail = `<strong>Advanced Mode Aktif:</strong> Menampilkan tashrif khusus untuk <strong>Bab ${forcedBab}</strong> sesuai instruksi yang Anda berikan.`;
+                } else {
+                    fallback.detail = `Pilihan Bab ${forcedBab} tidak relevan untuk kata ini. Sistem mengembalikan tampilan ke opsi bawaan.`;
+                }
+            }
+
+            document.getElementById('fallback-warning-detail').innerHTML = fallback.detail;
+            document.getElementById('fallback-warning').classList.remove('hidden');
+
+            const container = document.getElementById('fallback-variants-container');
+            container.replaceChildren();
+            
+            fallback.variants.forEach((variant, index) => {
+                const details = document.createElement('details');
+                details.className = 'group bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden';
+                details.open = true; // Langsung buka semua (karena sudah di filter/akordion pertama)
+                
+                details.innerHTML = `
+                    <summary class="cursor-pointer bg-emerald-50 hover:bg-emerald-100/50 transition-colors px-4 py-3 font-bold text-emerald-800 border-b border-emerald-100 flex justify-between">
+                        <span>${variant.label}</span>
+                    </summary>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <tbody class="divide-y divide-slate-100">
+                                ${variant.past.map((past, i) => `
+                                    <tr class="hover:bg-emerald-50/40 transition-colors">
+                                        <td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-700">${variant.present[i]}</td>
+                                        <td class="p-4 text-2xl md:text-3xl arabic-text font-bold text-emerald-900">${past}</td>
+                                        <td class="p-4 text-lg md:text-xl font-bold text-slate-700 bg-emerald-50/20 border-r border-slate-100">${dhomirs[i]}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                container.appendChild(details);
+            });
+
+            container.classList.remove('hidden');
+            showToast(forcedBab !== "auto" ? "Memproses Advanced Mode..." : "Memproses tebakan otomatis...", false);
+        }
+
+        resultContainer.classList.remove('hidden');
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        closeKeyboard();
+    }
+
+    // Keyboard Logistics
+    const keys = [
+        ['ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د'],
+        ['ش', 'س', 'ي', 'ب', 'ل', 'ا', 'أ', 'ت', 'ن', 'م', 'ك', 'ط'],
+        ['ظ', 'ز', 'و', 'ة', 'ى', 'ر', 'ؤ', 'ء', 'ئ', 'ّ'],
+        ['CLEAR_ALL', 'BACKSPACE']
+    ];
+
+    window.addEventListener('load', () => {
+        const grid = document.getElementById('keyboard-grid');
+        keys.forEach(row => {
+            row.forEach(key => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                if (key === 'CLEAR_ALL') {
+                    btn.className = 'col-span-5 md:col-span-6 h-12 md:h-14 bg-amber-100 text-amber-700 rounded-xl shadow-sm text-sm md:text-base font-bold flex items-center justify-center active:bg-amber-200';
+                    btn.textContent = 'Clear All';
+                    btn.onclick = () => document.getElementById('arabic-input').value = '';
+                } else if (key === 'BACKSPACE') {
+                    btn.className = 'col-span-5 md:col-span-6 h-12 md:h-14 bg-red-100 text-red-600 rounded-xl shadow-sm text-lg font-bold flex items-center justify-center active:bg-red-200';
+                    btn.textContent = '⌫ Hapus';
+                    btn.onclick = () => {
+                        const input = document.getElementById('arabic-input');
+                        input.value = [...input.value].slice(0, -1).join('');
+                    };
+                } else {
+                    btn.className = 'h-12 md:h-14 bg-white rounded-xl shadow-sm text-2xl md:text-3xl arabic-text text-emerald-900 active:bg-emerald-100';
+                    btn.textContent = key;
+                    btn.onclick = () => document.getElementById('arabic-input').value += key;
+                }
+                grid.appendChild(btn);
+            });
+        });
+    });
+
+    function openKeyboard() { document.getElementById('keyboard-container').classList.add('active'); }
+    function closeKeyboard() { document.getElementById('keyboard-container').classList.remove('active'); }
+
+    // Toggle Daftar Kosakata
+    function toggleVocabularyList() {
+        const list = document.getElementById('vocabulary-list');
+        const tbody = document.getElementById('vocabulary-table-body');
+        
+        if (list.classList.contains('hidden')) {
+            if (tbody.children.length === 0 && typeof verbLexicon !== 'undefined') {
+                Object.values(verbLexicon).sort((a,b) => a.no - b.no).forEach((entry, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-emerald-50/60';
+                    tr.innerHTML = `
+                        <td class="p-3 text-center text-slate-500">${idx + 1}</td>
+                        <td class="p-3 text-right text-2xl arabic-text font-bold text-emerald-900">${entry.madhi}</td>
+                        <td class="p-3 text-right text-2xl arabic-text font-bold text-emerald-700">${entry.mudhari}</td>
+                        <td class="p-3 text-left text-slate-700">${entry.arti}</td>
+                        <td class="p-3 text-left text-slate-700">${entry.meaning}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            list.classList.remove('hidden');
+            list.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            list.classList.add('hidden');
+        }
+    }
+</script>
+</body>
+</html>
