@@ -1,0 +1,27 @@
+{
+  "name": "Tashrif Lughowi Fi'il Qurani",
+  "short_name": "Tashrif",
+  "description": "Aplikasi Tashrif Lughowi untuk Fi'il dalam al-Quran",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#047857",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

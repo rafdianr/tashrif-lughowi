@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tashrif Lughowi Fi'il Qurani</title>
+    
+    <!-- Panggil Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Requirements -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#047857">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
+    
+    <!-- Panggil Database -->
+    <script src="data.js"></script>
+
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 text-slate-800 font-sans">
+    <div class="max-w-lg mx-auto glass-card p-6 mt-6">
+        <h1 class="text-2xl font-bold text-emerald-700 text-center mb-6">Tashrif Lughowi Qurani</h1>
+        
+        <!-- Input Mode -->
+        <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2">Cari Fi'il (Arab):</label>
+            <input type="text" id="searchInput" class="w-full border p-3 rounded-lg text-right text-2xl focus:ring-2 focus:ring-emerald-500 outline-none" dir="rtl" placeholder="Contoh: قال">
+        </div>
+
+        <!-- Advanced Mode (Pemilihan Bab) -->
+        <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2 text-slate-600">Advanced Mode (Pilihan Wazan/Bab):</label>
+            <select id="wazanSelect" class="w-full border p-3 rounded-lg bg-white text-slate-700">
+                <option value="auto">Deteksi Otomatis (Database 285 Kata)</option>
+                <option value="1">Bab 1 (فَعَلَ - يَفْعُلُ)</option>
+                <option value="2">Bab 2 (فَعَلَ - يَفْعِلُ)</option>
+                <option value="3">Bab 3 (فَعَلَ - يَفْعَلُ)</option>
+                <option value="4">Bab 4 (فَعِلَ - يَفْعَلُ)</option>
+                <option value="5">Bab 5 (فَعُلَ - يَفْعُلُ)</option>
+                <option value="6">Bab 6 (فَعِلَ - يَفْعِلُ)</option>
+            </select>
+        </div>
+
+        <button onclick="cariTashrif()" class="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold text-lg hover:bg-emerald-700 transition shadow-lg">Cari Tashrif</button>
+
+        <!-- Area Hasil -->
+        <div id="resultArea" class="mt-8 hidden">
+            <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <h3 class="font-bold text-lg text-emerald-800 mb-2">Hasil:</h3>
+                <div id="tashrifData" class="text-right text-xl leading-loose" dir="rtl"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logika -->
+    <script>
+        function cariTashrif() {
+            const input = document.getElementById('searchInput').value.trim();
+            const wazan = document.getElementById('wazanSelect').value;
+            const resultArea = document.getElementById('resultArea');
+            const tashrifData = document.getElementById('tashrifData');
+            
+            if(!input) return alert("Silakan masukkan kata Arab terlebih dahulu!");
+
+            resultArea.classList.remove('hidden');
+            
+            // Logika pencarian di kamus
+            if(verbLexicon && verbLexicon[input]) {
+                const kata = verbLexicon[input];
+                tashrifData.innerHTML = `
+                    <p class="text-sm text-emerald-600 text-left mb-2">✓ Ditemukan di Kamus</p>
+                    <b>Madhi:</b> ${kata.fiil_madhi}<br>
+                    <b>Mudhori:</b> ${kata.fiil_mudhori}<br>
+                    <b>Masdar:</b> ${kata.masdar}<br>
+                    <b>Amar:</b> ${kata.fiil_amar}
+                `;
+            } else {
+                // Logika Fallback
+                tashrifData.innerHTML = `
+                    <p class="text-sm text-amber-600 text-left mb-2">⚠ Kata di luar kamus. Menggunakan Fallback Algorithm.</p>
+                    <p class="text-lg">Kata <b>${input}</b> akan ditashrifkan menggunakan rumus ${wazan === 'auto' ? 'Otomatis' : 'Bab ' + wazan}.</p>
+                    <p class="text-sm text-slate-500 mt-2 text-left">(Logika tashrif generik dapat Anda lengkapi nanti sesuai diskusi kita)</p>
+                `;
+            }
+        }
+
+        // Pendaftaran Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('PWA Siap dijalankan!'))
+                .catch(err => console.log('PWA Gagal:', err));
+            });
+        }
+    </script>
+</body>
+</html>
